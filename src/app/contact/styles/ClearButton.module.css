@@ -1,0 +1,8 @@
+.ClearButton {
+  font-weight: bold;
+  color: rgb(62, 59, 59);
+  background-color: rgb(186, 190, 194);
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: none;
+}

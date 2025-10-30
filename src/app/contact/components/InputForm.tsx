@@ -19,7 +19,7 @@ export default function InputForm({
   return (
     <>
       <div className={styles.inputRow}>
-        <label htmlFor="name">名前</label>
+        <label htmlFor="name">お名前</label>
         <input
           type="text"
           value={name}

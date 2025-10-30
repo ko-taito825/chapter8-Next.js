@@ -1,0 +1,38 @@
+.textAreaRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+  position: relative;
+}
+
+.textAreaRow label {
+  width: 135px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.textArea {
+  flex: 1;
+  min-height: 160px;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.textArea:focus {
+  border-color: red;
+
+  outline: none;
+}
+.errorMessage {
+  color: red;
+  font-size: 0.9rem;
+  position: absolute;
+  left: 150px; /* ← ラベル分だけ右にずらす */
+  bottom: -37px; /* ← 入力欄の下に表示 */
+}
