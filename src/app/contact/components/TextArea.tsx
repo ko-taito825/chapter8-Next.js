@@ -9,14 +9,14 @@ interface TextAreaProps {
 }
 export default function TextArea({ form, setForm, errors }: TextAreaProps) {
   return (
-    <div>
+    <div className={styles.textAreaRow}>
       <label htmlFor="form">本文</label>
       <textarea
         name="form"
         id="form"
         value={form}
         rows={5}
-        className={styles.textAreaRow}
+        className={styles.textArea}
         onChange={(e) => setForm(e.target.value)}
       ></textarea>
     </div>
