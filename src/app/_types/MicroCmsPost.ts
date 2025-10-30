@@ -8,5 +8,3 @@ export interface MicroCmsPost {
   categories: { id: string; name: string }[];
   thumbnail: { url: string; height: number; width: number };
 }
-
-const [posts, setPosts] = useState<MicroCmsPost[]>([]);
