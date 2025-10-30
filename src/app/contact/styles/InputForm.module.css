@@ -1,0 +1,31 @@
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 0;
+  position: relative; /* ← これがポイント（下に絶対配置できるように） */
+}
+
+.inputRow label {
+  width: 140px;
+  font-weight: bold;
+  flex-shrink: 0; /* ラベル幅を固定 */
+}
+
+.inputRow input {
+  flex: 1;
+  height: 40px;
+  max-width: 1100px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.errorMessage {
+  color: red;
+  font-size: 0.9rem;
+  position: absolute;
+  left: 150px; /* ← ラベル分だけ右にずらす */
+  bottom: -37px; /* ← 入力欄の下に表示 */
+}

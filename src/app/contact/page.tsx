@@ -59,9 +59,9 @@ export default function page() {
   const validate = () => {
     const newErrors: Errors = {};
     if (!name.trim()) {
-      newErrors.name = "名前を入力してください";
+      newErrors.name = "お名前を入力してください";
     } else if (name.trim().length > 30) {
-      newErrors.name = "名前は30文字以内で入力してください";
+      newErrors.name = "お名前は30文字以内で入力してください";
     }
     if (!email.trim()) {
       newErrors.email = "メールアドレスを入力してください";

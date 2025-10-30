@@ -1,0 +1,7 @@
+.Button {
+  font-weight: bold;
+  color: aliceblue;
+  background-color: rgb(62, 59, 59);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
