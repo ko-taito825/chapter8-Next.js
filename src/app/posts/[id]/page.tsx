@@ -1,27 +1,29 @@
 "use client";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { Post } from "@/app/types/post";
+import { MicroCmsPost } from "@/app/_types/MicroCmsPost";
 import { useParams } from "next/navigation";
 import styles from "./page.module.css";
 export default function page() {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<MicroCmsPost | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetcher = async () => {
-      try {
-        const res = await fetch(
-          `https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/posts/${id}`
-        );
-        const data = await res.json();
-        setPost(data.post);
-      } catch (error) {
-        console.log("データの取得に失敗しました", error);
-      } finally {
-        setLoading(false);
-      }
+      const res = await fetch(
+        `https://4hy8bu3cgn.microcms.io/api/v1/posts/${id}`,
+        {
+          headers: {
+            "X-MICROCMS-API-KEY": process.env
+              .NEXT_PUBLIC_MICROCMS_API_KEY as string,
+          },
+        }
+      );
+      const data = await res.json();
+      console.log("データ", data);
+      setPost(data);
+      setLoading(false);
     };
     fetcher();
   }, [id]);
@@ -32,16 +34,16 @@ export default function page() {
     <div className={styles.wrapper}>
       <Image
         className={styles.detailImg}
-        src={post.thumbnailUrl}
+        src={post.thumbnail.url}
         alt={post.title}
         width={800}
         height={400}
       />
       <p>{new Date(post.createdAt).toLocaleDateString("ja-jp")}</p>
       <div className={styles.categoryItems}>
-        {post.categories.map((category: string, catIndex: number) => (
+        {post.categories.map((category, catIndex) => (
           <span key={catIndex} className={styles.categoryItem}>
-            {category}
+            {category.name}
           </span>
         ))}
       </div>
