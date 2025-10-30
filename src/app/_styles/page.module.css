@@ -1,0 +1,23 @@
+.postCard {
+  text-decoration: none;
+  display: block;
+  color: black;
+}
+.container {
+  border: 1px solid rgb(139, 134, 134);
+  padding: 16px;
+  margin: 40px 30px;
+}
+.languageItem {
+  color: black;
+}
+.categoryItems {
+  color: rgb(53, 144, 144);
+  float: right;
+}
+.categoryItem {
+  padding: 5px;
+  margin: 5px;
+  border: 1px solid rgb(53, 144, 144);
+  border-radius: 5px;
+}
