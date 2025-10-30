@@ -1,0 +1,18 @@
+.header {
+  height: 80px;
+  background-color: rgb(53, 50, 50);
+}
+.headerMenu {
+  margin: 0 30px;
+  display: flex;
+  justify-content: space-between;
+  line-height: 80px;
+}
+.headerMenu li {
+  list-style: none;
+}
+.headerMenu li a {
+  font-weight: bold;
+  color: rgb(237, 237, 221);
+  text-decoration: none;
+}

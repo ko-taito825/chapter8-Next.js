@@ -1,0 +1,13 @@
+.wrapper {
+  width: 800px;
+  margin: 40px auto;
+}
+.contactTitle {
+  font-size: 13px;
+}
+.flexButton {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
