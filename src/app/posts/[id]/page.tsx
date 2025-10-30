@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { Post } from "@/app/types/post";
 import { useParams } from "next/navigation";
@@ -29,10 +30,12 @@ export default function page() {
   if (!post) return <p>記事が見つかりません</p>;
   return (
     <div className={styles.wrapper}>
-      <img
+      <Image
         className={styles.detailImg}
         src={post.thumbnailUrl}
         alt={post.title}
+        width={800}
+        height={400}
       />
       <p>{new Date(post.createdAt).toLocaleDateString("ja-jp")}</p>
       <div className={styles.categoryItems}>
