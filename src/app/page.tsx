@@ -9,16 +9,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetcher = async () => {
-      console.log("APIキー:", process.env.NEXT_PUBLIC_MICROCMS_API_KEY);
-      const res = await fetch("https://4hy8bu3cgn.microcms.io/api/v1/posts", {
+      const res = await fetch("/api/posts", {
         headers: {
           "X-MICROCMS-API-KEY": process.env
             .NEXT_PUBLIC_MICROCMS_API_KEY as string,
         },
       });
 
-      const { contents } = await res.json();
-      setPosts(contents);
+      const { posts } = await res.json();
+      console.log("posts", posts);
+      setPosts(posts);
       setLoading(false);
     };
     fetcher();
@@ -41,9 +41,9 @@ export default function Home() {
                 {new Date(post.createdAt).toLocaleDateString("ja-jp")}
               </div>
               <div className={styles.categoryItems}>
-                {post.categories.map((category, catIndex) => (
+                {post.postCategories.map((pc, catIndex) => (
                   <span key={catIndex} className={styles.categoryItem}>
-                    {category.name}
+                    {pc.category.name}
                   </span>
                 ))}
               </div>
