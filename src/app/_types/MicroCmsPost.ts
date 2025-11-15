@@ -1,10 +1,14 @@
-import { useState } from "react";
-
 export interface MicroCmsPost {
-  id: string;
+  id: number;
   title: string;
   content: string;
+  thumbnailUrl: string;
   createdAt: string;
-  categories: { id: string; name: string }[];
-  thumbnail: { url: string; height: number; width: number };
+  updatedAt: string;
+  postCategories: {
+    category: {
+      id: number;
+      name: string;
+    };
+  }[];
 }
