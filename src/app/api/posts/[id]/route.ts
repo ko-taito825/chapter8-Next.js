@@ -8,7 +8,9 @@ export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  console.log("paramsの中身", params);
   const { id } = params;
+  console.log("params.idの中身", id);
   try {
     const post = await prisma.post.findUnique({
       where: {
