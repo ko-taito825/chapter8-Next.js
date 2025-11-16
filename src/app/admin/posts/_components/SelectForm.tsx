@@ -11,8 +11,8 @@ import { Category } from "@prisma/client";
 import React, { useEffect, useState } from "react";
 
 interface Props {
-  selectedCategories: Category[];
-  setSelectedCategories: (categories: Category[]) => void;
+  selectedCategories: number[];
+  setSelectedCategories: (categories: number[]) => void;
 }
 
 export default function SelectForm({
@@ -22,18 +22,8 @@ export default function SelectForm({
   const [categories, setCategories] = useState<Category[]>([]);
 
   const handleChange = (value: number[]) => {
-    value.forEach((v: number) => {
-      const isSelect = selectedCategories.some((c) => c.id === v);
-      if (isSelect) {
-        setSelectedCategories(selectedCategories.filter((c) => c.id !== v));
-        return;
-      }
-
-      const category = categories.find((c) => c.id === v);
-      if (!category) return;
-      setSelectedCategories([...selectedCategories, category]);
-    });
-    console.log(e.target.value);
+    setSelectedCategories(value);
+    // console.log("e.target.value", ); //配列：20
   };
 
   useEffect(() => {
@@ -44,22 +34,23 @@ export default function SelectForm({
     };
     fetcher();
   }, []);
-
+  console.log("selectedCategories", selectedCategories);
   return (
     <FormControl className="w-full">
       <Select
         multiple
         value={selectedCategories}
-        onChange={(e) => handleChange(e)}
+        onChange={(e) => handleChange(e.target.value as number[])}
         // onChange={(e) => handleChange(e.target.value as unknown as number[])}
         input={<OutlinedInput />}
-        renderValue={(selected: Category[]) => (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-            {selected.map((value: Category) => (
-              <Chip key={value.id} label={value.name} />
-            ))}
-          </Box>
-        )}
+
+        // renderValue={(selected: string[]) => (
+        //   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+        //     {selected.map((value: Category) => (
+        //       <Chip key={value.id} label={value.name} />
+        //     ))}
+        //   </Box>
+        // )}
       >
         {categories.map((category) => (
           <MenuItem key={category.id} value={category.id}>

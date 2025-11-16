@@ -5,6 +5,7 @@ export interface MicroCmsPost {
   thumbnailUrl: string;
   createdAt: string;
   updatedAt: string;
+
   postCategories: {
     category: {
       id: number;

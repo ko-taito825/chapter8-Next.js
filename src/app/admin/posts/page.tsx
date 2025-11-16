@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 type Post = {
   id: number;
   title: string;
+  createdAt: Date;
 };
 export default function page() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -34,8 +35,11 @@ export default function page() {
         {posts.map((post) => {
           return (
             <Link href={`/admin/posts/${post.id}`} key={post.id}>
-              <div className="my-7 font-bold border-b border-gray-300 ">
-                <div>{post.title}</div>
+              <div className="my-7  border-b border-gray-300 ">
+                <div className="font-bold">{post.title}</div>
+                <div className="">
+                  {new Date(post.createdAt).toLocaleDateString("ja-jp")}
+                </div>
               </div>
             </Link>
           );

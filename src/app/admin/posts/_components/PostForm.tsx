@@ -10,8 +10,8 @@ type PostFormProps = {
   setContent: (content: string) => void;
   thumbnailUrl: string;
   setThumbnailUrl: (value: string) => void;
-  categories: Category[];
-  setCategories: (categories: Category[]) => void;
+  categories: number[];
+  setCategories: (categories: number[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
 };

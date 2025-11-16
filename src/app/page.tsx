@@ -47,7 +47,7 @@ export default function Home() {
                   </span>
                 ))}
               </div>
-              <h1>APIで取得した{post.title}</h1>
+              <h1 className="font-bold text-2xl">{post.title}</h1>
               <div
                 dangerouslySetInnerHTML={{
                   __html: post.content.slice(0, 60) + "...",

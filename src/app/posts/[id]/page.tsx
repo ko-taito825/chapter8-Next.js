@@ -11,18 +11,15 @@ export default function page() {
 
   useEffect(() => {
     const fetcher = async () => {
-      const res = await fetch(
-        `https://4hy8bu3cgn.microcms.io/api/v1/posts/${id}`,
-        {
-          headers: {
-            "X-MICROCMS-API-KEY": process.env
-              .NEXT_PUBLIC_MICROCMS_API_KEY as string,
-          },
-        }
-      );
+      const res = await fetch(`/api/posts/${id}`, {
+        headers: {
+          "X-MICROCMS-API-KEY": process.env
+            .NEXT_PUBLIC_MICROCMS_API_KEY as string,
+        },
+      });
       const data = await res.json();
       console.log("データ", data);
-      setPost(data);
+      setPost(data.post);
       setLoading(false);
     };
     fetcher();
@@ -34,20 +31,20 @@ export default function page() {
     <div className={styles.wrapper}>
       <Image
         className={styles.detailImg}
-        src={post.thumbnail.url}
+        src={post.thumbnailUrl}
         alt={post.title}
         width={800}
         height={400}
       />
       <p>{new Date(post.createdAt).toLocaleDateString("ja-jp")}</p>
       <div className={styles.categoryItems}>
-        {post.categories.map((category, catIndex) => (
+        {post.postCategories.map((pc, catIndex) => (
           <span key={catIndex} className={styles.categoryItem}>
-            {category.name}
+            {pc.category.name}
           </span>
         ))}
       </div>
-      <h2>APIで取得した{post.title}</h2>
+      <h2 className="font-bold">{post.title}</h2>
       <div dangerouslySetInnerHTML={{ __html: post.content }} />
     </div>
   );
