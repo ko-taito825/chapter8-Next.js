@@ -1,4 +1,4 @@
-import { Category } from "@prisma/client";
+import { Category } from "../../../_types/Category";
 import React from "react";
 import SelectForm from "./SelectForm";
 
@@ -10,8 +10,8 @@ type PostFormProps = {
   setContent: (content: string) => void;
   thumbnailUrl: string;
   setThumbnailUrl: (value: string) => void;
-  categories: number[];
-  setCategories: (categories: number[]) => void;
+  categories: Category[];
+  setCategories: (categories: Category[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
 };

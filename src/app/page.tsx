@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MicroCmsPost } from "./_types/MicroCmsPost";
 import styles from "./_styles/page.module.css";
+import { Post } from "./_types/post";
 
 export default function Home() {
-  const [posts, setPosts] = useState<MicroCmsPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetcher = async () => {
@@ -41,9 +41,9 @@ export default function Home() {
                 {new Date(post.createdAt).toLocaleDateString("ja-jp")}
               </div>
               <div className={styles.categoryItems}>
-                {post.postCategories.map((pc, catIndex) => (
+                {post.postCategories.map((category, catIndex) => (
                   <span key={catIndex} className={styles.categoryItem}>
-                    {pc.category.name}
+                    {category.category.name}
                   </span>
                 ))}
               </div>

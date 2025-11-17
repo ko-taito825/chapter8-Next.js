@@ -2,35 +2,17 @@
 import React, { useEffect, useState } from "react";
 import PostForm from "../_components/PostForm";
 import { useRouter } from "next/navigation";
-import { Category } from "@prisma/client";
 import { useParams } from "next/navigation";
+import { Post } from "../../../_types/post";
+import { Category } from "../../../_types/Category";
 
-interface Post {
-  post: {
-    id: number;
-    content: string;
-    title: string;
-    thumbnailUrl: string;
-    postCategories: {
-      id: number;
-      postId: number;
-      categoryId: number;
-      createdAt: Date;
-      updatedAt: Date;
-      category: {
-        id: number;
-        name: string;
-      };
-    }[];
-  };
-}
 export default function page() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState(
     "https://placehold.jp/800x400.jpg"
   );
-  const [categories, setCategories] = useState<number[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const { id } = useParams();
 
@@ -46,7 +28,7 @@ export default function page() {
         title,
         content,
         thumbnailUrl,
-        categories: categories.map((category) => ({ id: category })),
+        categories,
       }),
     });
     alert("記事を更新しました");
@@ -67,17 +49,17 @@ export default function page() {
   useEffect(() => {
     const fetcher = async () => {
       const res = await fetch(`/api/admin/posts/${id}`);
-      const { post }: Post = await res.json();
+      const { post }: { post: Post } = await res.json();
       console.log("post", post);
       setTitle(post.title);
       setContent(post.content);
       setThumbnailUrl(post.thumbnailUrl);
-      setCategories(post.postCategories.map((category) => category.categoryId));
+      setCategories(post.postCategories.map((pc) => pc.category));
     };
 
     fetcher();
   }, [id]);
-
+  console.log("categories", categories);
   return (
     <>
       <div>

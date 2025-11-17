@@ -1,12 +1,12 @@
 "use client";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { MicroCmsPost } from "@/app/_types/MicroCmsPost";
 import { useParams } from "next/navigation";
 import styles from "./page.module.css";
+import { Post } from "../../_types/post";
 export default function page() {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<MicroCmsPost | null>(null);
+  const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
