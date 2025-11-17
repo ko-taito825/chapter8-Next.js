@@ -14,6 +14,7 @@ export default function Page() {
     const fetcher = async () => {
       const res = await fetch("/api/admin/categories", { cache: "no-store" });
       const { categories } = await res.json();
+      console.log("categories", categories);
       setCategories(categories);
     };
     fetcher();
