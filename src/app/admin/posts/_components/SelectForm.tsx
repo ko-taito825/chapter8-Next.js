@@ -12,11 +12,13 @@ import React, { useEffect, useState } from "react";
 interface Props {
   selectedCategories: Category[];
   setSelectedCategories: (categories: Category[]) => void;
+  isloading: boolean;
 }
 
 export default function SelectForm({
   selectedCategories,
   setSelectedCategories,
+  isloading,
 }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -36,7 +38,7 @@ export default function SelectForm({
   }, []);
 
   return (
-    <FormControl className="w-full">
+    <FormControl className="w-full" disabled={isloading}>
       <Select
         multiple
         value={selectedCategories.map((c) => c.id)}

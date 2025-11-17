@@ -15,22 +15,27 @@ export default function page() {
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const { id } = useParams();
-
+  const [isloading, setIsLoading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    try {
+      await fetch(`/api/admin/posts/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          thumbnailUrl,
+          categories,
+        }),
+      });
+    } finally {
+      setIsLoading(false);
+    }
 
-    await fetch(`/api/admin/posts/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        content,
-        thumbnailUrl,
-        categories,
-      }),
-    });
     alert("記事を更新しました");
     router.push(`/admin/posts`);
   };
@@ -77,6 +82,7 @@ export default function page() {
         setCategories={setCategories}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
+        isloading={isloading}
       />
     </>
   );

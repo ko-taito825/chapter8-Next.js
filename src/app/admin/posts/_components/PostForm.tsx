@@ -14,6 +14,7 @@ type PostFormProps = {
   setCategories: (categories: Category[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
+  isloading: boolean;
 };
 export default function PostForm({
   mode,
@@ -27,6 +28,7 @@ export default function PostForm({
   setCategories,
   onSubmit,
   onDelete,
+  isloading,
 }: PostFormProps) {
   return (
     <form onSubmit={onSubmit}>
@@ -38,6 +40,7 @@ export default function PostForm({
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          disabled={isloading}
         />
       </div>
       <div className="mt-10">
@@ -48,6 +51,7 @@ export default function PostForm({
           id="content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          disabled={isloading}
         ></textarea>
       </div>
       <div className="mt-10">
@@ -58,6 +62,7 @@ export default function PostForm({
           id="thumbnailUrl"
           value={thumbnailUrl}
           onChange={(e) => setThumbnailUrl(e.target.value)}
+          disabled={isloading}
         />
       </div>
       <div className="mt-10 ">
@@ -65,6 +70,7 @@ export default function PostForm({
         <SelectForm
           selectedCategories={categories}
           setSelectedCategories={setCategories}
+          isloading={isloading}
         />
       </div>
 
@@ -77,6 +83,7 @@ export default function PostForm({
       }
       transition-colors duration-200`}
         type="submit"
+        disabled={isloading}
       >
         {mode === "new" ? "作成" : "更新"}
       </button>
@@ -85,6 +92,7 @@ export default function PostForm({
           className="px-4 py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors duration-200"
           type="button"
           onClick={onDelete}
+          disabled={isloading}
         >
           削除
         </button>

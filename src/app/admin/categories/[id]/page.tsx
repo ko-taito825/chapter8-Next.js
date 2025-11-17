@@ -8,16 +8,22 @@ export default function page() {
   const [name, setName] = useState("");
   const { id } = useParams();
   const router = useRouter();
+  const [isloading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`/api/admin/categories/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({ name }),
-    });
+    setIsLoading(true);
+    try {
+      await fetch(`/api/admin/categories/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+    } finally {
+      setIsLoading(false);
+    }
     alert("カテゴリーを更新しました");
     router.push(`/admin/categories`);
   };
@@ -25,9 +31,14 @@ export default function page() {
   const handleDelete = async () => {
     //!confirm() => ユーザーがOK押したら削除処理、キャンセルしたら関数終了
     if (!confirm("カテゴリーを削除しますか？")) return; //早期リターンのガード句
-    await fetch(`/api/admin/categories/${id}`, {
-      method: "DELETE",
-    });
+    setIsLoading(true);
+    try {
+      await fetch(`/api/admin/categories/${id}`, {
+        method: "DELETE",
+      });
+    } finally {
+      setIsLoading(false);
+    }
 
     alert("カテゴリーを削除しました");
     router.push("/admin/categories");
@@ -54,6 +65,7 @@ export default function page() {
         setName={setName}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
+        isloading={isloading}
       />
     </div>
   );

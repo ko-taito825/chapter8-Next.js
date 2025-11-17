@@ -6,6 +6,7 @@ interface Props {
   setName: (title: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
+  isloading: boolean;
 }
 
 export default function CategoryForm({
@@ -14,6 +15,7 @@ export default function CategoryForm({
   setName,
   onSubmit,
   onDelete,
+  isloading,
 }: Props) {
   return (
     <form onSubmit={onSubmit}>
@@ -25,6 +27,7 @@ export default function CategoryForm({
           id="title"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          disabled={isloading}
         />
       </div>
       <div className="flex gap-4 mt-6">
@@ -37,6 +40,7 @@ export default function CategoryForm({
       }
       transition-colors duration-200`}
           type="submit"
+          disabled={isloading}
         >
           {mode === "new" ? "作成" : "更新"}
         </button>
@@ -45,6 +49,7 @@ export default function CategoryForm({
             className="px-4 py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors duration-200"
             type="button"
             onClick={onDelete}
+            disabled={isloading}
           >
             削除
           </button>
