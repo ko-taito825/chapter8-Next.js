@@ -12,7 +12,7 @@ export default function Page() {
 
   useEffect(() => {
     const fetcher = async () => {
-      const res = await fetch("/api/admin/categories", { cache: "no-store" });
+      const res = await fetch("/api/admin/categories");
       const { categories } = await res.json();
       console.log("categories", categories);
       setCategories(categories);
