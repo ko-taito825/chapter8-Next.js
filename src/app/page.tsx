@@ -1,24 +1,24 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MicroCmsPost } from "./_types/MicroCmsPost";
 import styles from "./_styles/page.module.css";
+import { Post } from "./_types/post";
 
 export default function Home() {
-  const [posts, setPosts] = useState<MicroCmsPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetcher = async () => {
-      console.log("APIキー:", process.env.NEXT_PUBLIC_MICROCMS_API_KEY);
-      const res = await fetch("https://4hy8bu3cgn.microcms.io/api/v1/posts", {
+      const res = await fetch("/api/posts", {
         headers: {
           "X-MICROCMS-API-KEY": process.env
             .NEXT_PUBLIC_MICROCMS_API_KEY as string,
         },
       });
 
-      const { contents } = await res.json();
-      setPosts(contents);
+      const { posts } = await res.json();
+      console.log("posts", posts);
+      setPosts(posts);
       setLoading(false);
     };
     fetcher();
@@ -41,13 +41,13 @@ export default function Home() {
                 {new Date(post.createdAt).toLocaleDateString("ja-jp")}
               </div>
               <div className={styles.categoryItems}>
-                {post.categories.map((category, catIndex) => (
+                {post.postCategories.map((category, catIndex) => (
                   <span key={catIndex} className={styles.categoryItem}>
-                    {category.name}
+                    {category.category.name}
                   </span>
                 ))}
               </div>
-              <h1>APIで取得した{post.title}</h1>
+              <h1 className="font-bold text-2xl">{post.title}</h1>
               <div
                 dangerouslySetInnerHTML={{
                   __html: post.content.slice(0, 60) + "...",
