@@ -1,4 +1,5 @@
 "use client";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
@@ -9,15 +10,24 @@ type Post = {
 };
 export default function page() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const { token } = useSupabaseSession();
 
   useEffect(() => {
+    if (!token) return;
+
     const fetcher = async () => {
-      const res = await fetch("/api/admin/posts");
+      const res = await fetch("/api/admin/posts", {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: token,
+        },
+      });
       const { posts } = await res.json();
       setPosts(posts);
     };
     fetcher();
   });
+
   return (
     <div>
       <div className="flex justify-between">

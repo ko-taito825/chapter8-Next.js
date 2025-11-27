@@ -3,16 +3,16 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import PostForm from "../_components/PostForm";
 import { Category } from "@prisma/client";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 export default function page() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState(
-    "https://placehold.jp/800x400.jpg"
-  );
+  const [thumbnailImageKey, setThumbnailImageKey] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
   const [isloading, setIsLoading] = useState(false);
+  const { token } = useSupabaseSession();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +22,10 @@ export default function page() {
         method: "POST",
         headers: {
           "Content-type": "application/json",
-        },
-        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+          Authorization: token,
+        } as Record<string, string>,
+
+        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
       });
       const { id } = await res.json();
     } finally {
@@ -44,8 +46,8 @@ export default function page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

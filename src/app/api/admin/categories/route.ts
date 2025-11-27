@@ -1,9 +1,15 @@
+import { supabase } from "@/utils/supabase";
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
 export const GET = async (request: NextRequest) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   try {
     const categories = await prisma.category.findMany({
       orderBy: {
@@ -18,6 +24,11 @@ export const GET = async (request: NextRequest) => {
 };
 
 export const POST = async (request: Request, context: any) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   try {
     const body = await request.json();
     const { name } = body;

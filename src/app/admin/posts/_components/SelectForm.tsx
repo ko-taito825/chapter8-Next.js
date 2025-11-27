@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { Category } from "../../../_types/Category";
 import React, { useEffect, useState } from "react";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 interface Props {
   selectedCategories: Category[];
@@ -21,6 +22,7 @@ export default function SelectForm({
   isloading,
 }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const { token } = useSupabaseSession();
 
   const handleChange = (e: SelectChangeEvent<number[]>) => {
     const ids = e.target.value as number[];
@@ -29,13 +31,19 @@ export default function SelectForm({
   };
 
   useEffect(() => {
+    if (!token) return;
     const fetcher = async () => {
-      const res = await fetch("/api/admin/categories");
+      const res = await fetch("/api/admin/categories", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+      });
       const { categories } = await res.json();
       setCategories(categories);
     };
     fetcher();
-  }, []);
+  }, [token]);
 
   return (
     <FormControl className="w-full" disabled={isloading}>

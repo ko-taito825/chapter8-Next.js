@@ -1,5 +1,6 @@
 "use client";
 
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -9,16 +10,22 @@ type Category = {
 };
 export default function Page() {
   const [categories, setCategories] = useState<Category[]>([]);
-
+  const { token } = useSupabaseSession();
   useEffect(() => {
+    if (!token) return;
     const fetcher = async () => {
-      const res = await fetch("/api/admin/categories");
+      const res = await fetch("/api/admin/categories", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+      });
       const { categories } = await res.json();
       console.log("categories", categories);
       setCategories(categories);
     };
     fetcher();
-  }, []);
+  }, [token]);
 
   return (
     <div>
