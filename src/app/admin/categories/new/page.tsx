@@ -3,14 +3,22 @@ import React, { useState } from "react";
 import CategoryForm from "../_components/CategoryForm";
 import { useRouter } from "next/navigation";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { CategoryFormData } from "@/app/_types/form";
+import { useForm } from "react-hook-form";
 
 export default function page() {
-  const [name, setName] = useState("");
   const router = useRouter();
   const [isloading, setIsLoading] = useState(false);
   const { token } = useSupabaseSession();
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+
+    formState: { errors },
+  } = useForm<CategoryFormData>({
+    defaultValues: { title: "" },
+  });
+  const onSubmit = async (data: CategoryFormData) => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/admin/categories", {
@@ -19,10 +27,15 @@ export default function page() {
           "Content-type": "application/json",
           Authorization: token,
         } as Record<string, string>,
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: data.title }),
       });
-      console.log(res);
-      const { id } = await res.json();
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
+    } catch (error) {
+      console.error("カテゴリー作成エラー:", error);
+      alert("カテゴリーの作成に失敗しました");
+      return;
     } finally {
       setIsLoading(false);
     }
@@ -38,9 +51,8 @@ export default function page() {
       </div>
       <CategoryForm
         mode="new"
-        name={name}
-        setName={setName}
-        onSubmit={handleSubmit}
+        initialName={""}
+        onSubmit={onSubmit}
         isloading={isloading}
       />
     </div>

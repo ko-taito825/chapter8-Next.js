@@ -4,15 +4,16 @@ import CategoryForm from "../_components/CategoryForm";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { CategoryFormData } from "@/app/_types/form";
+import { useForm } from "react-hook-form";
 
 export default function page() {
-  const [name, setName] = useState("");
   const { id } = useParams();
   const router = useRouter();
   const [isloading, setIsLoading] = useState(false);
   const { token } = useSupabaseSession();
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [name, setName] = useState("");
+  const onSubmit = async (data: CategoryFormData) => {
     setIsLoading(true);
     try {
       await fetch(`/api/admin/categories/${id}`, {
@@ -21,7 +22,7 @@ export default function page() {
           "Content-type": "application/json",
           Authorization: token,
         } as Record<string, string>,
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: data.title }),
       });
     } finally {
       setIsLoading(false);
@@ -73,9 +74,8 @@ export default function page() {
       </div>
       <CategoryForm
         mode="edit"
-        name={name}
-        setName={setName}
-        onSubmit={handleSubmit}
+        initialName={name}
+        onSubmit={onSubmit}
         onDelete={handleDelete}
         isloading={isloading}
       />

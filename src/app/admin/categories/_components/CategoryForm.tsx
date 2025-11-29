@@ -1,34 +1,48 @@
-import React from "react";
+import { CategoryFormData } from "@/app/_types/form";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
 interface Props {
   mode: "new" | "edit";
-  name: string;
-  setName: (title: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  initialName: string;
+  onSubmit: (data: CategoryFormData) => void;
   onDelete?: () => void;
   isloading: boolean;
 }
 
 export default function CategoryForm({
   mode,
-  name,
-  setName,
+  initialName,
   onSubmit,
   onDelete,
   isloading,
 }: Props) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CategoryFormData>({
+    defaultValues: { title: initialName },
+  });
+
+  useEffect(() => {
+    reset({ title: initialName });
+  }, [initialName, reset]);
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div>
         <label htmlFor="title">カテゴリー名</label>
         <input
           className="border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
           type="text"
           id="title"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          {...register("title", { required: "タイトルは必須です" })}
           disabled={isloading}
         />
+        <p className="text-red-600">
+          {errors.title?.message as React.ReactNode}
+        </p>
       </div>
       <div className="flex gap-4 mt-6">
         <button
