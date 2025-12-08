@@ -1,41 +1,42 @@
-import { Category } from "../../../_types/Category";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import SelectForm from "./SelectForm";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/utils/supabase";
 import Image from "next/image";
+import {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormReset,
+  UseFormSetValue,
+  Controller,
+  useWatch,
+} from "react-hook-form";
+import { Post } from "@/app/_types/post";
+import useSWR from "swr";
 type PostFormProps = {
   mode: "new" | "edit";
-  title: string;
-  setTitle: (title: string) => void;
-  content: string;
-  setContent: (content: string) => void;
-  thumbnailImageKey: string;
-  setThumbnailImageKey: (thumbnailImageKey: string) => void;
-  categories: Category[];
-  setCategories: (categories: Category[]) => void;
+  register: UseFormRegister<Post>;
+  control: Control<Post>;
+  reset: UseFormReset<Post>;
+  errors: FieldErrors<Post>;
+  setValue: UseFormSetValue<Post>;
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
-  isloading: boolean;
+  isSubmitting: boolean;
 };
 export default function PostForm({
   mode,
-  title,
-  setTitle,
-  content,
-  setContent,
-  categories,
-  setCategories,
+  register,
+  control,
+  reset,
+  errors,
+  setValue,
   onSubmit,
   onDelete,
-  isloading,
-  thumbnailImageKey,
-  setThumbnailImageKey,
+  isSubmitting,
 }: PostFormProps) {
-  const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(
-    null
-  );
-
+  const thumbnailImageKey = useWatch({ control, name: "thumbnailImageKey" });
   const handleImageChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
@@ -46,34 +47,40 @@ export default function PostForm({
     const filePath = `private/${uuidv4()}`;
     const { data, error } = await supabase.storage
       .from("post_thumbnail")
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+      .upload(filePath, file);
+
     if (error) {
       alert(error.message);
       return;
     }
-    setThumbnailImageKey(data.path);
+    setValue("thumbnailImageKey", data.path);
+  };
+  // useEffect(() => {
+  //   const fetcher = async () => {
+  //     if (!thumbnailImageKey) return;
+  //     const {
+  //       data: { publicUrl },
+  //     } = await supabase.storage
+  //       .from("post_thumbnail")
+  //       .getPublicUrl(thumbnailImageKey);
+  //     setThumbnailImageUrl(publicUrl);
+  //     console.log("publicUrl", publicUrl);
+  //   };
+  //   fetcher();
+  // }, [thumbnailImageKey]);
+
+  const fetchThumbnailUrl = async (key: string) => {
+    const {
+      data: { publicUrl },
+    } = await supabase.storage.from("post_thumbnail").getPublicUrl(key);
+    return publicUrl;
   };
 
-  useEffect(() => {
-    if (!thumbnailImageKey) {
-      console.log("キーが見つかりません。");
-      return; // デバッグ用
-    }
-
-    const fetcher = async () => {
-      const {
-        data: { publicUrl },
-      } = await supabase.storage
-        .from("post_thumbnail")
-        .getPublicUrl(thumbnailImageKey);
-      setThumbnailImageUrl(publicUrl);
-      console.log("publicUrl", publicUrl);
-    };
-    fetcher();
-  }, [thumbnailImageKey]);
+  const {
+    data: thumbnailImageUrl,
+    error,
+    isLoading,
+  } = useSWR(thumbnailImageKey ? thumbnailImageKey : null, fetchThumbnailUrl);
   return (
     <form onSubmit={onSubmit}>
       <div className="mt-10">
@@ -82,29 +89,29 @@ export default function PostForm({
           className="border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
           type="text"
           id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          disabled={isloading}
+          {...register("title", {
+            required: "タイトルは必須です",
+          })}
+          disabled={isLoading}
         />
       </div>
       <div className="mt-10">
         <label htmlFor="content">内容</label>
         <textarea
           className="border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
-          name=""
           id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          disabled={isloading}
+          {...register("content")}
+          disabled={isLoading}
         ></textarea>
       </div>
+
       <div className="mt-10">
         <label htmlFor="thumbnailImageKey">サムネイルURL</label>
         <input
           type="file"
           id="thumbnailImageKey"
           onChange={handleImageChange}
-          disabled={isloading}
+          disabled={isLoading}
         />
         {thumbnailImageUrl && (
           <div className="mt-2">
@@ -119,10 +126,16 @@ export default function PostForm({
       </div>
       <div className="mt-10 ">
         <label htmlFor="thumbnailUrl">カテゴリー</label>
-        <SelectForm
-          selectedCategories={categories}
-          setSelectedCategories={setCategories}
-          isloading={isloading}
+        <Controller
+          name="postCategories"
+          control={control}
+          render={({ field }) => (
+            <SelectForm
+              selectedCategories={field.value}
+              setSelectedCategories={field.onChange}
+              isSubmitting={isSubmitting}
+            />
+          )}
         />
       </div>
 
@@ -135,7 +148,7 @@ export default function PostForm({
       }
       transition-colors duration-200`}
         type="submit"
-        disabled={isloading}
+        disabled={isSubmitting}
       >
         {mode === "new" ? "作成" : "更新"}
       </button>
@@ -144,7 +157,7 @@ export default function PostForm({
           className="px-4 py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors duration-200"
           type="button"
           onClick={onDelete}
-          disabled={isloading}
+          disabled={isSubmitting}
         >
           削除
         </button>
@@ -152,3 +165,5 @@ export default function PostForm({
     </form>
   );
 }
+
+//isLoadingとisSubmittingが混同してる

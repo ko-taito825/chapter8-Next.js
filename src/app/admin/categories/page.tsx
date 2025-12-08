@@ -2,30 +2,35 @@
 
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 
 type Category = {
   id: number;
   name: string;
 };
 export default function Page() {
-  const [categories, setCategories] = useState<Category[]>([]);
   const { token } = useSupabaseSession();
-  useEffect(() => {
-    if (!token) return;
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/categories", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-      const { categories } = await res.json();
-      console.log("categories", categories);
-      setCategories(categories);
-    };
-    fetcher();
-  }, [token]);
+
+  const fetcher = async ([url, token]: [string, string]) => {
+    const res = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+    });
+    if (!res.ok) {
+      throw new Error("カテゴリー取得に失敗しました");
+    }
+    const { categories } = await res.json();
+    return categories as Category[];
+  };
+  const {
+    data: categories,
+    error,
+    isLoading,
+  } = useSWR(token ? ["/api/admin/categories", token] : null, fetcher);
+  if (error) return <div>カテゴリーの取得に失敗しました</div>;
+  if (isLoading || !categories) return <div>読み込み中...</div>;
 
   return (
     <div>

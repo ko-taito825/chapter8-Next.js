@@ -9,44 +9,51 @@ import {
 import { Category } from "../../../_types/Category";
 import React, { useEffect, useState } from "react";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { PostCategory } from "@/app/_types/post";
+import useSWR from "swr";
 
 interface Props {
-  selectedCategories: Category[];
+  selectedCategories: PostCategory[];
   setSelectedCategories: (categories: Category[]) => void;
-  isloading: boolean;
+  isSubmitting: boolean;
 }
 
 export default function SelectForm({
   selectedCategories,
   setSelectedCategories,
-  isloading,
+  isSubmitting,
 }: Props) {
-  const [categories, setCategories] = useState<Category[]>([]);
   const { token } = useSupabaseSession();
 
   const handleChange = (e: SelectChangeEvent<number[]>) => {
+    if (!categories) return;
     const ids = e.target.value as number[];
     const selected = categories.filter((c) => ids.includes(c.id));
     setSelectedCategories(selected);
   };
 
-  useEffect(() => {
-    if (!token) return;
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/categories", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-      const { categories } = await res.json();
-      setCategories(categories);
-    };
-    fetcher();
-  }, [token]);
-
+  const fetcher = async ([url, token]: [string, string]) => {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json", Authorization: token },
+    });
+    if (!res.ok) {
+      throw new Error("カテゴリー取得に失敗しました");
+    }
+    const { categories } = await res.json();
+    return categories;
+  };
+  const {
+    data: categories,
+    error,
+    isLoading,
+  } = useSWR<Category[]>(
+    token ? ["/api/admin/categories", token] : null,
+    fetcher
+  );
+  if (error) return <div>取得に失敗しました</div>;
+  if (!categories) return <div>読み込み中...</div>;
   return (
-    <FormControl className="w-full" disabled={isloading}>
+    <FormControl className="w-full" disabled={isSubmitting}>
       <Select
         multiple
         value={selectedCategories.map((c) => c.id)}

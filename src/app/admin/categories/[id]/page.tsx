@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { CategoryFormData } from "@/app/_types/form";
-import { useForm } from "react-hook-form";
+
+import useSWR from "swr";
 
 export default function page() {
   const { id } = useParams();
@@ -50,22 +51,32 @@ export default function page() {
     router.push("/admin/categories");
   };
 
+  const fetcher = async ([url, token]: [string, string]) => {
+    const res = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+    });
+    if (!res.ok) {
+      throw new Error("カテゴリー取得に失敗しました");
+    }
+    const { category } = await res.json();
+    return category;
+  };
+
+  const {
+    data: category,
+    error,
+    isLoading,
+  } = useSWR(token ? [`/api/admin/categories/${id}`, token] : null, fetcher);
+
   useEffect(() => {
-    if (!token) return;
-
-    const fetcher = async () => {
-      const res = await fetch(`/api/admin/categories/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-
-      const { category } = await res.json();
-      setName(category.name);
-    };
-    fetcher();
-  }, [id, token]);
+    if (!category) return;
+    setName(category.name ?? "");
+  }, [category]);
+  if (error) return <div>取得に失敗しました</div>;
+  if (isLoading) return <div>読み込み中...</div>;
 
   return (
     <div>

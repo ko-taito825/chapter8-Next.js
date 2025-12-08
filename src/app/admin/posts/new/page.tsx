@@ -2,21 +2,31 @@
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import PostForm from "../_components/PostForm";
-import { Category } from "@prisma/client";
+import { Post } from "../../../_types/post";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 export default function page() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [thumbnailImageKey, setThumbnailImageKey] = useState("");
-  const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
-  const [isloading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useSupabaseSession();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+    setValue,
+  } = useForm<Post>({
+    defaultValues: {
+      title: "",
+      content: "",
+      thumbnailImageKey: "",
+      postCategories: [],
+    },
+  });
+  const onSubmit: SubmitHandler<Post> = async (data) => {
+    setIsSubmitting(true);
     try {
       const res = await fetch("/api/admin/posts", {
         method: "POST",
@@ -25,11 +35,11 @@ export default function page() {
           Authorization: token,
         } as Record<string, string>,
 
-        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
+        body: JSON.stringify(data),
       });
       const { id } = await res.json();
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
 
     alert("記事を作成しました");
@@ -42,16 +52,13 @@ export default function page() {
       </div>
       <PostForm
         mode="new"
-        title={title}
-        setTitle={setTitle}
-        content={content}
-        setContent={setContent}
-        thumbnailImageKey={thumbnailImageKey}
-        setThumbnailImageKey={setThumbnailImageKey}
-        categories={categories}
-        setCategories={setCategories}
-        onSubmit={handleSubmit}
-        isloading={isloading}
+        register={register}
+        errors={errors}
+        reset={reset}
+        control={control}
+        setValue={setValue}
+        onSubmit={handleSubmit(onSubmit)}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

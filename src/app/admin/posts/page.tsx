@@ -1,7 +1,7 @@
 "use client";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import useSWR from "swr";
 
 type Post = {
   id: number;
@@ -9,25 +9,23 @@ type Post = {
   createdAt: Date;
 };
 export default function page() {
-  const [posts, setPosts] = useState<Post[]>([]);
   const { token } = useSupabaseSession();
 
-  useEffect(() => {
-    if (!token) return;
-
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/posts", {
-        headers: {
-          "Content-type": "application/json",
-          Authorization: token,
-        },
-      });
-      const { posts } = await res.json();
-      setPosts(posts);
-    };
-    fetcher();
-  });
-
+  const fetcher = async ([url, token]: [string, string]) => {
+    const res = await fetch(url, {
+      headers: {
+        "Content-type": "application/json",
+        Authorization: token,
+      },
+    });
+    const { posts } = await res.json();
+    return posts;
+  };
+  const {
+    data: posts,
+    error,
+    isLoading,
+  } = useSWR<Post[]>(token ? ["/api/admin/posts", token] : null, fetcher);
   return (
     <div>
       <div className="flex justify-between">
@@ -42,7 +40,7 @@ export default function page() {
         </button>
       </div>
       <div className="my-10">
-        {posts.map((post) => {
+        {posts?.map((post) => {
           return (
             <Link href={`/admin/posts/${post.id}`} key={post.id}>
               <div className="my-7  border-b border-gray-300 ">
