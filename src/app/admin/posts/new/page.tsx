@@ -1,49 +1,49 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
 import PostForm from "../_components/PostForm";
-import { Post } from "../../../_types/post";
+import { PostInput } from "../../../_types/post";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { SubmitHandler, useForm } from "react-hook-form";
 
 export default function page() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useSupabaseSession();
   const {
     register,
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setValue,
-  } = useForm<Post>({
+  } = useForm<PostInput>({
     defaultValues: {
       title: "",
       content: "",
       thumbnailImageKey: "",
-      postCategories: [],
+      categories: [],
     },
   });
-  const onSubmit: SubmitHandler<Post> = async (data) => {
-    setIsSubmitting(true);
+  const onSubmit: SubmitHandler<PostInput> = async (data) => {
     try {
       const res = await fetch("/api/admin/posts", {
         method: "POST",
         headers: {
           "Content-type": "application/json",
-          Authorization: token,
-        } as Record<string, string>,
+          Authorization: token ?? "",
+        },
 
         body: JSON.stringify(data),
       });
-      const { id } = await res.json();
-    } finally {
-      setIsSubmitting(false);
-    }
 
-    alert("記事を作成しました");
-    router.push(`/admin/posts`);
+      if (!res.ok) {
+        throw new Error(`作成失敗: ${res.status}`);
+      }
+      await res.json();
+      alert("記事を作成しました");
+      router.push(`/admin/posts`);
+    } catch (e) {
+      console.error(e);
+      alert("記事の作成に失敗しました");
+    }
   };
   return (
     <div>
@@ -54,7 +54,6 @@ export default function page() {
         mode="new"
         register={register}
         errors={errors}
-        reset={reset}
         control={control}
         setValue={setValue}
         onSubmit={handleSubmit(onSubmit)}

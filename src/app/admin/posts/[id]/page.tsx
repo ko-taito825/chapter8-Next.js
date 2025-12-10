@@ -3,48 +3,50 @@ import React, { ChangeEvent, useEffect, useState } from "react";
 import PostForm from "../_components/PostForm";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-import { Post } from "../../../_types/post";
+import { PostInput, Post } from "../../../_types/post";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { SubmitHandler, useForm } from "react-hook-form";
-import useSWR from "swr";
+import { useFetch } from "@/app/_hooks/useFetch";
 
 export default function page({}) {
-  // const {data: post} = useSWR(id ? `/api/admin/posts/${id}`: null, fetcher)
   const router = useRouter();
   const { id } = useParams();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { token } = useSupabaseSession();
   const {
     register,
     handleSubmit,
     control,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setValue,
-  } = useForm<Post>({
+  } = useForm<PostInput>({
     defaultValues: {
       title: "",
       content: "",
       thumbnailImageKey: "",
-      postCategories: [],
+      categories: [],
     },
   });
 
-  const onSubmit: SubmitHandler<Post> = async (data) => {
-    setIsSubmitting(true);
+  const {
+    data: post,
+    error,
+    isLoading,
+  } = useFetch<Post>(id ? `/api/admin/posts/${id}` : null, "post");
+  const onSubmit: SubmitHandler<PostInput> = async (data) => {
     const payload = {
       title: data.title,
       content: data.content,
       thumbnailImageKey: data.thumbnailImageKey,
-      categories: data.postCategories.map((c) => ({ id: c.id })),
+      categories: data.categories.map((c) => ({ id: c.id })),
     };
     try {
       const res = await fetch(`/api/admin/posts/${id}`, {
         method: "PUT",
         headers: {
           "Content-type": "application/json",
-          Authorization: token,
-        } as Record<string, string>, //headersをキャストして逃げる
+          Authorization: token ?? "",
+        },
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("失敗しました");
@@ -54,8 +56,6 @@ export default function page({}) {
     } catch (e) {
       console.error(e);
       alert("更新に失敗しました。");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -65,63 +65,13 @@ export default function page({}) {
     await fetch(`/api/admin/posts/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: token,
-      } as Record<string, string>, //headersをキャストして逃げる
+        Authorization: token ?? "",
+      },
     });
 
     alert("カテゴリーを削除しました");
     router.push("/admin/posts");
   };
-
-  // useEffect(() => {
-  //   if (!token) return;
-  //   const fetcher = async () => {
-  //     try {
-  //       const res = await fetch(`/api/admin/posts/${id}`, {
-  //         headers: {
-  //           "Content-type": "application/json",
-  //           Authorization: token,
-  //         },
-  //       });
-  //       if (!res.ok) throw new Error("通信エラー発生しました");
-  //       const { post }: { post: Post } = await res.json();
-  //       console.log("postCategories", post.postCategories);
-  //       reset({
-  //         title: post.title,
-  //         content: post.content,
-  //         thumbnailImageKey: post.thumbnailImageKey,
-  //         postCategories: post.postCategories.map(
-  //           (pc) => pc.category
-  //         ),
-  //       });
-  //     } catch (errors) {
-  //       console.error(errors);
-  //       alert("データの取得に失敗しました");
-  //     }
-  //   };
-
-  //   fetcher();
-  // }, [id, token, reset]);
-
-  const fetcher = async ([url, token]: [string, string]) => {
-    const res = await fetch(url, {
-      headers: {
-        "Content-type": "application/json",
-        Authorization: token,
-      },
-    });
-    if (!res.ok) {
-      throw new Error("通信エラーが発生しました");
-    }
-    const { post }: { post: Post } = await res.json();
-    return post;
-  };
-
-  const {
-    data: post,
-    error,
-    isLoading,
-  } = useSWR(token && id ? [`/api/admin/posts/${id}`, token] : null, fetcher);
 
   useEffect(() => {
     if (!post) return;
@@ -129,16 +79,13 @@ export default function page({}) {
       title: post.title,
       content: post.content,
       thumbnailImageKey: post.thumbnailImageKey,
-      postCategories: post.postCategories.map((pc) => pc.category),
+      categories: post.postCategories.map((pc) => pc.category),
     });
   }, [post, reset]);
 
-  if (isLoading) {
-    return <p>読み込み中...</p>;
-  }
-  if (error) {
-    return <p>データの取得に失敗しました</p>;
-  }
+  if (error) return <div>取得に失敗しました</div>;
+  if (isLoading) return <div>読み込み中...</div>;
+  if (!post) return null;
   return (
     <>
       <div>
@@ -149,7 +96,6 @@ export default function page({}) {
         mode="edit"
         register={register}
         errors={errors}
-        reset={reset}
         control={control}
         setValue={setValue}
         onSubmit={handleSubmit(onSubmit)}

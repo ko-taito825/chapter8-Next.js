@@ -1,10 +1,10 @@
 import { Category } from "./Category";
 
 export interface PostCategory {
-  id:number;
-  postId:number;
-  categoryId:number;
-  category:Category;
+  id: number;
+  postId: number;
+  categoryId: number;
+  category: Category;
 }
 export interface Post {
   id: number;
@@ -12,7 +12,13 @@ export interface Post {
   content: string;
   createdAt: string;
   postCategories: PostCategory[];
-  
 
   thumbnailImageKey: string;
+}
+
+export interface PostInput {
+  title: string;
+  content: string;
+  thumbnailImageKey: string;
+  categories: Category[];
 }

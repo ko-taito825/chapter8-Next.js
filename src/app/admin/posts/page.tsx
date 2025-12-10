@@ -1,7 +1,6 @@
 "use client";
-import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { useFetch } from "@/app/_hooks/useFetch";
 import Link from "next/link";
-import useSWR from "swr";
 
 type Post = {
   id: number;
@@ -9,23 +8,15 @@ type Post = {
   createdAt: Date;
 };
 export default function page() {
-  const { token } = useSupabaseSession();
-
-  const fetcher = async ([url, token]: [string, string]) => {
-    const res = await fetch(url, {
-      headers: {
-        "Content-type": "application/json",
-        Authorization: token,
-      },
-    });
-    const { posts } = await res.json();
-    return posts;
-  };
   const {
     data: posts,
     error,
     isLoading,
-  } = useSWR<Post[]>(token ? ["/api/admin/posts", token] : null, fetcher);
+  } = useFetch<Post[]>("/api/admin/posts", "posts");
+
+  if (error) return <div>取得に失敗しました</div>;
+  if (isLoading) return <div>読み込み中...</div>;
+  if (!posts) return null;
   return (
     <div>
       <div className="flex justify-between">

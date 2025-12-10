@@ -1,4 +1,3 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
 import SelectForm from "./SelectForm";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/utils/supabase";
@@ -7,20 +6,18 @@ import {
   Control,
   FieldErrors,
   UseFormRegister,
-  UseFormReset,
   UseFormSetValue,
   Controller,
   useWatch,
 } from "react-hook-form";
-import { Post } from "@/app/_types/post";
+import { PostInput } from "@/app/_types/post";
 import useSWR from "swr";
 type PostFormProps = {
   mode: "new" | "edit";
-  register: UseFormRegister<Post>;
-  control: Control<Post>;
-  reset: UseFormReset<Post>;
-  errors: FieldErrors<Post>;
-  setValue: UseFormSetValue<Post>;
+  register: UseFormRegister<PostInput>;
+  control: Control<PostInput>;
+  errors: FieldErrors<PostInput>;
+  setValue: UseFormSetValue<PostInput>;
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
   isSubmitting: boolean;
@@ -29,7 +26,6 @@ export default function PostForm({
   mode,
   register,
   control,
-  reset,
   errors,
   setValue,
   onSubmit,
@@ -55,20 +51,6 @@ export default function PostForm({
     }
     setValue("thumbnailImageKey", data.path);
   };
-  // useEffect(() => {
-  //   const fetcher = async () => {
-  //     if (!thumbnailImageKey) return;
-  //     const {
-  //       data: { publicUrl },
-  //     } = await supabase.storage
-  //       .from("post_thumbnail")
-  //       .getPublicUrl(thumbnailImageKey);
-  //     setThumbnailImageUrl(publicUrl);
-  //     console.log("publicUrl", publicUrl);
-  //   };
-  //   fetcher();
-  // }, [thumbnailImageKey]);
-
   const fetchThumbnailUrl = async (key: string) => {
     const {
       data: { publicUrl },
@@ -76,11 +58,11 @@ export default function PostForm({
     return publicUrl;
   };
 
-  const {
-    data: thumbnailImageUrl,
-    error,
-    isLoading,
-  } = useSWR(thumbnailImageKey ? thumbnailImageKey : null, fetchThumbnailUrl);
+  const { data: thumbnailImageUrl, isLoading } = useSWR(
+    thumbnailImageKey ? thumbnailImageKey : null,
+    fetchThumbnailUrl
+  );
+
   return (
     <form onSubmit={onSubmit}>
       <div className="mt-10">
@@ -94,6 +76,7 @@ export default function PostForm({
           })}
           disabled={isLoading}
         />
+        <p className="text-red-500">{errors.title?.message}</p>
       </div>
       <div className="mt-10">
         <label htmlFor="content">内容</label>
@@ -127,11 +110,11 @@ export default function PostForm({
       <div className="mt-10 ">
         <label htmlFor="thumbnailUrl">カテゴリー</label>
         <Controller
-          name="postCategories"
+          name="categories"
           control={control}
           render={({ field }) => (
             <SelectForm
-              selectedCategories={field.value}
+              selectedCategories={field.value || []}
               setSelectedCategories={field.onChange}
               isSubmitting={isSubmitting}
             />
@@ -165,5 +148,3 @@ export default function PostForm({
     </form>
   );
 }
-
-//isLoadingとisSubmittingが混同してる

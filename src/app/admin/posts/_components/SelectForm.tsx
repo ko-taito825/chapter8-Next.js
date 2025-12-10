@@ -5,15 +5,14 @@ import {
   OutlinedInput,
   Select,
   SelectChangeEvent,
+  Box,
+  Chip,
 } from "@mui/material";
 import { Category } from "../../../_types/Category";
-import React, { useEffect, useState } from "react";
-import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import { PostCategory } from "@/app/_types/post";
-import useSWR from "swr";
+import { useFetch } from "@/app/_hooks/useFetch";
 
 interface Props {
-  selectedCategories: PostCategory[];
+  selectedCategories: Category[];
   setSelectedCategories: (categories: Category[]) => void;
   isSubmitting: boolean;
 }
@@ -23,7 +22,13 @@ export default function SelectForm({
   setSelectedCategories,
   isSubmitting,
 }: Props) {
-  const { token } = useSupabaseSession();
+  const { data, error, isLoading } = useFetch<{ categories: Category[] }>(
+    "/api/admin/categories",
+    "categories"
+  );
+
+  console.log("デバッグ用APIの生データ", data);
+  const categories = data as unknown as Category[];
 
   const handleChange = (e: SelectChangeEvent<number[]>) => {
     if (!categories) return;
@@ -32,33 +37,24 @@ export default function SelectForm({
     setSelectedCategories(selected);
   };
 
-  const fetcher = async ([url, token]: [string, string]) => {
-    const res = await fetch(url, {
-      headers: { "Content-Type": "application/json", Authorization: token },
-    });
-    if (!res.ok) {
-      throw new Error("カテゴリー取得に失敗しました");
-    }
-    const { categories } = await res.json();
-    return categories;
-  };
-  const {
-    data: categories,
-    error,
-    isLoading,
-  } = useSWR<Category[]>(
-    token ? ["/api/admin/categories", token] : null,
-    fetcher
-  );
   if (error) return <div>取得に失敗しました</div>;
-  if (!categories) return <div>読み込み中...</div>;
+  if (isLoading) return <div>読み込み中...</div>;
+  if (!categories) return null;
+  console.log("デバッグ", selectedCategories);
   return (
     <FormControl className="w-full" disabled={isSubmitting}>
       <Select
         multiple
         value={selectedCategories.map((c) => c.id)}
         onChange={handleChange}
-        input={<OutlinedInput />}
+        input={<OutlinedInput label="カテゴリー" />}
+        renderValue={(selected) => (
+          <Box>
+            {selectedCategories.map((category) => (
+              <Chip key={category.id} label={category.name} />
+            ))}
+          </Box>
+        )}
       >
         {categories.map((category) => (
           <MenuItem key={category.id} value={category.id}>
