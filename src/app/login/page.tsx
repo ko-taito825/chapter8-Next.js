@@ -9,15 +9,13 @@ type FormValues = {
   password: string;
 };
 export default function page() {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors,isSubmitting },
   } = useForm<FormValues>();
   const onSubmit = async (data: FormValues) => {
-    setIsLoading(true);
     try {
       const { email, password } = data;
       const { error } = await supabase.auth.signInWithPassword({
@@ -31,9 +29,7 @@ export default function page() {
       }
     } catch (error) {
       alert("予期せぬエラーが発生しました");
-    } finally {
-      setIsLoading(false);
-    }
+    } 
   };
   return (
     <div className="flex justify-center pt-[240px]">
@@ -76,7 +72,7 @@ export default function page() {
         <div>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
           >
             ログイン
