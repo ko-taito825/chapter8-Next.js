@@ -3,19 +3,31 @@ import Link from "next/link";
 import React from "react";
 import { supabase } from "@/utils/supabase";
 import { useSupabaseSession } from "../_hooks/useSupabaseSession";
+import { useRouter } from "next/navigation";
 
 export const Header: React.FC = () => {
+  const router = useRouter();
+  const { session, isLoading } = useSupabaseSession();
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/";
   };
-  const { session, isLoading } = useSupabaseSession();
 
   return (
     <header className="bg-gray-800 text-white p-6 font-bold flex justify-between items-center">
-      <Link href="/" className="header-link">
-        Blog
-      </Link>
+      {session ? (
+        <button
+          onClick={handleLogout}
+          className="header-link text-xl font-bold"
+        >
+          Bolg
+        </button>
+      ) : (
+        <Link href="/" className="header-link">
+          Blog
+        </Link>
+      )}
+
       {!isLoading && (
         <div className="flex items-center gap-4">
           {session ? (
