@@ -7,7 +7,6 @@ interface Props {
   initialName: string;
   onSubmit: (data: CategoryFormData) => void;
   onDelete?: () => void;
-  isloading: boolean;
 }
 
 export default function CategoryForm({
@@ -15,13 +14,12 @@ export default function CategoryForm({
   initialName,
   onSubmit,
   onDelete,
-  isloading,
 }: Props) {
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<CategoryFormData>({
     defaultValues: { title: initialName },
   });
@@ -38,7 +36,7 @@ export default function CategoryForm({
           type="text"
           id="title"
           {...register("title", { required: "タイトルは必須です" })}
-          disabled={isloading}
+          disabled={isSubmitting}
         />
         <p className="text-red-600">
           {errors.title?.message as React.ReactNode}
@@ -54,7 +52,7 @@ export default function CategoryForm({
       }
       transition-colors duration-200`}
           type="submit"
-          disabled={isloading}
+          disabled={isSubmitting}
         >
           {mode === "new" ? "作成" : "更新"}
         </button>
@@ -63,7 +61,7 @@ export default function CategoryForm({
             className="px-4 py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors duration-200"
             type="button"
             onClick={onDelete}
-            disabled={isloading}
+            disabled={isSubmitting}
           >
             削除
           </button>
