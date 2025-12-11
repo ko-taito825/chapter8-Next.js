@@ -1,5 +1,5 @@
 "use client";
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import PostForm from "../_components/PostForm";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
