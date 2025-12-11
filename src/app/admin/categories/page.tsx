@@ -1,24 +1,20 @@
 "use client";
 
+import { useFetch } from "@/app/_hooks/useFetch";
+import { Category } from "@/app/_types/Category";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-type Category = {
-  id: number;
-  name: string;
+type CategoriesResponse = {
+  categories: Category[];
 };
 export default function Page() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { data, error, isLoading } = useFetch<CategoriesResponse>(
+    "/api/admin/categories",
+    "categories"
+  );
 
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/categories", { cache: "no-store" });
-      const { categories } = await res.json();
-      console.log("categories", categories);
-      setCategories(categories);
-    };
-    fetcher();
-  }, []);
+  if (error) return <div>カテゴリーの取得に失敗しました</div>;
+  if (isLoading || !data) return <div>読み込み中...</div>;
 
   return (
     <div>
@@ -34,7 +30,7 @@ export default function Page() {
         </button>
       </div>
       <div className="my-10">
-        {categories.map((category) => {
+        {data.categories.map((category) => {
           return (
             <Link href={`/admin/categories/${category.id}`} key={category.id}>
               <div className="my-7 font-bold border-b border-gray-300 ">

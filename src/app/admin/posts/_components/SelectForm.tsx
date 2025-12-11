@@ -5,45 +5,56 @@ import {
   OutlinedInput,
   Select,
   SelectChangeEvent,
+  Box,
+  Chip,
 } from "@mui/material";
 import { Category } from "../../../_types/Category";
-import React, { useEffect, useState } from "react";
+import { useFetch } from "@/app/_hooks/useFetch";
 
 interface Props {
   selectedCategories: Category[];
   setSelectedCategories: (categories: Category[]) => void;
-  isloading: boolean;
+  isSubmitting: boolean;
 }
 
 export default function SelectForm({
   selectedCategories,
   setSelectedCategories,
-  isloading,
+  isSubmitting,
 }: Props) {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { data, error, isLoading } = useFetch<{ categories: Category[] }>(
+    "/api/admin/categories",
+    "categories"
+  );
+
+  console.log("デバッグ用APIの生データ", data);
+  const categories = data as unknown as Category[];
 
   const handleChange = (e: SelectChangeEvent<number[]>) => {
+    if (!categories) return;
     const ids = e.target.value as number[];
     const selected = categories.filter((c) => ids.includes(c.id));
     setSelectedCategories(selected);
   };
 
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/categories");
-      const { categories } = await res.json();
-      setCategories(categories);
-    };
-    fetcher();
-  }, []);
-
+  if (error) return <div>取得に失敗しました</div>;
+  if (isLoading) return <div>読み込み中...</div>;
+  if (!categories) return null;
+  console.log("デバッグ", selectedCategories);
   return (
-    <FormControl className="w-full" disabled={isloading}>
+    <FormControl className="w-full" disabled={isSubmitting}>
       <Select
         multiple
         value={selectedCategories.map((c) => c.id)}
         onChange={handleChange}
-        input={<OutlinedInput />}
+        input={<OutlinedInput label="カテゴリー" />}
+        renderValue={(selected) => (
+          <Box>
+            {selectedCategories.map((category) => (
+              <Chip key={category.id} label={category.name} />
+            ))}
+          </Box>
+        )}
       >
         {categories.map((category) => (
           <MenuItem key={category.id} value={category.id}>

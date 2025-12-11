@@ -2,8 +2,10 @@
 import Link from "next/link";
 import React from "react";
 import "../globals.css";
+import { useRouteGuard } from "../_hooks/useRouteGuard";
 
 export default function layout({ children }: { children: React.ReactNode }) {
+  useRouteGuard();
   return (
     <>
       <div className="flex">

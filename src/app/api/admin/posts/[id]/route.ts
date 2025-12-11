@@ -1,3 +1,4 @@
+import { supabase } from "@/utils/supabase";
 import { PrismaClient } from "@prisma/client";
 
 import { NextRequest, NextResponse } from "next/server";
@@ -8,20 +9,25 @@ interface UpdataCategoryRequestBody {
   title: string;
   content: string;
   categories: { id: number }[];
-  thumbnailUrl: string;
+  thumbnailImageKey: string;
 }
 
 export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   const { id } = params;
 
   const {
     title,
     content,
     categories,
-    thumbnailUrl,
+    thumbnailImageKey,
   }: UpdataCategoryRequestBody = await request.json();
 
   try {
@@ -32,7 +38,7 @@ export const PUT = async (
       data: {
         title,
         content,
-        thumbnailUrl,
+        thumbnailImageKey,
       },
     });
     await prisma.postCategory.deleteMany({
@@ -60,6 +66,11 @@ export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   const { id } = params;
   try {
     const post = await prisma.post.findUnique({
@@ -90,6 +101,11 @@ export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   const { id } = params;
   try {
     await prisma.post.delete({

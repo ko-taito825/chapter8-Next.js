@@ -1,3 +1,4 @@
+import { supabase } from "@/utils/supabase";
 import { PrismaClient } from "@prisma/client";
 import { request } from "http";
 import { NextRequest, NextResponse } from "next/server";
@@ -12,6 +13,11 @@ export const PUT = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   const { id } = params;
 
   const { name }: UpdataCategoryRequestBody = await request.json();
@@ -37,7 +43,13 @@ export const GET = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   const { id } = params;
+
   try {
     const category = await prisma.category.findUnique({
       where: {
@@ -55,6 +67,11 @@ export const DELETE = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
+  const token = request.headers.get("Authorization") ?? "";
+  const { error } = await supabase.auth.getUser(token);
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 });
+
   const { id } = params;
   try {
     await prisma.category.delete({

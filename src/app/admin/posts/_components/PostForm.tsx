@@ -1,35 +1,61 @@
-import { Category } from "../../../_types/Category";
-import React from "react";
 import SelectForm from "./SelectForm";
-
+import { v4 as uuidv4 } from "uuid";
+import { supabase } from "@/utils/supabase";
+import Image from "next/image";
+import {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+  Controller,
+  useWatch,
+} from "react-hook-form";
+import { PostInput } from "@/app/_types/post";
 type PostFormProps = {
   mode: "new" | "edit";
-  title: string;
-  setTitle: (title: string) => void;
-  content: string;
-  setContent: (content: string) => void;
-  thumbnailUrl: string;
-  setThumbnailUrl: (value: string) => void;
-  categories: Category[];
-  setCategories: (categories: Category[]) => void;
+  register: UseFormRegister<PostInput>;
+  control: Control<PostInput>;
+  errors: FieldErrors<PostInput>;
+  setValue: UseFormSetValue<PostInput>;
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
-  isloading: boolean;
+  isSubmitting: boolean;
 };
 export default function PostForm({
   mode,
-  title,
-  setTitle,
-  content,
-  setContent,
-  thumbnailUrl,
-  setThumbnailUrl,
-  categories,
-  setCategories,
+  register,
+  control,
+  errors,
+  setValue,
   onSubmit,
   onDelete,
-  isloading,
+  isSubmitting,
 }: PostFormProps) {
+  const thumbnailImageKey = useWatch({ control, name: "thumbnailImageKey" });
+  const handleImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
+    if (!event.target.files || event?.target.files.length == 0) {
+      return;
+    }
+    const file = event.target.files[0]; //選択された画像を取得
+    const filePath = `private/${uuidv4()}`;
+    const { data, error } = await supabase.storage
+      .from("post_thumbnail")
+      .upload(filePath, file);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    setValue("thumbnailImageKey", data.path);
+  };
+
+  const thumbnailImageUrl = thumbnailImageKey
+    ? supabase.storage.from("post_thumbnail").getPublicUrl(thumbnailImageKey)
+        .data.publicUrl
+    : null;
+
   return (
     <form onSubmit={onSubmit}>
       <div className="mt-10">
@@ -38,39 +64,51 @@ export default function PostForm({
           className="border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
           type="text"
           id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          disabled={isloading}
+          {...register("title", {
+            required: "タイトルは必須です",
+          })}
         />
+        <p className="text-red-500">{errors.title?.message}</p>
       </div>
       <div className="mt-10">
         <label htmlFor="content">内容</label>
         <textarea
           className="border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
-          name=""
           id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          disabled={isloading}
+          {...register("content")}
         ></textarea>
       </div>
+
       <div className="mt-10">
-        <label htmlFor="thumbnailUrl">サムネイルURL</label>
+        <label htmlFor="thumbnailImageKey">サムネイルURL</label>
         <input
-          className="border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
-          type="text"
-          id="thumbnailUrl"
-          value={thumbnailUrl}
-          onChange={(e) => setThumbnailUrl(e.target.value)}
-          disabled={isloading}
+          type="file"
+          id="thumbnailImageKey"
+          onChange={handleImageChange}
         />
+        {thumbnailImageUrl && (
+          <div className="mt-2">
+            <Image
+              src={thumbnailImageUrl}
+              alt="thumbnail"
+              width={400}
+              height={400}
+            />
+          </div>
+        )}
       </div>
       <div className="mt-10 ">
         <label htmlFor="thumbnailUrl">カテゴリー</label>
-        <SelectForm
-          selectedCategories={categories}
-          setSelectedCategories={setCategories}
-          isloading={isloading}
+        <Controller
+          name="categories"
+          control={control}
+          render={({ field }) => (
+            <SelectForm
+              selectedCategories={field.value || []}
+              setSelectedCategories={field.onChange}
+              isSubmitting={isSubmitting}
+            />
+          )}
         />
       </div>
 
@@ -83,7 +121,7 @@ export default function PostForm({
       }
       transition-colors duration-200`}
         type="submit"
-        disabled={isloading}
+        disabled={isSubmitting}
       >
         {mode === "new" ? "作成" : "更新"}
       </button>
@@ -92,7 +130,7 @@ export default function PostForm({
           className="px-4 py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors duration-200"
           type="button"
           onClick={onDelete}
-          disabled={isloading}
+          disabled={isSubmitting}
         >
           削除
         </button>

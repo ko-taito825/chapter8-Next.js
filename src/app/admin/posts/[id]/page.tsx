@@ -1,43 +1,62 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import PostForm from "../_components/PostForm";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-import { Post } from "../../../_types/post";
-import { Category } from "../../../_types/Category";
+import { PostInput, Post } from "../../../_types/post";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { useFetch } from "@/app/_hooks/useFetch";
 
-export default function page() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState(
-    "https://placehold.jp/800x400.jpg"
-  );
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function page({}) {
   const router = useRouter();
   const { id } = useParams();
-  const [isloading, setIsLoading] = useState(false);
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const { token } = useSupabaseSession();
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isSubmitting },
+    setValue,
+  } = useForm<PostInput>({
+    defaultValues: {
+      title: "",
+      content: "",
+      thumbnailImageKey: "",
+      categories: [],
+    },
+  });
+
+  const {
+    data: post,
+    error,
+    isLoading,
+  } = useFetch<Post>(id ? `/api/admin/posts/${id}` : null, "post");
+  const onSubmit: SubmitHandler<PostInput> = async (data) => {
+    const payload = {
+      title: data.title,
+      content: data.content,
+      thumbnailImageKey: data.thumbnailImageKey,
+      categories: data.categories.map((c) => ({ id: c.id })),
+    };
     try {
-      await fetch(`/api/admin/posts/${id}`, {
+      const res = await fetch(`/api/admin/posts/${id}`, {
         method: "PUT",
         headers: {
           "Content-type": "application/json",
+          Authorization: token ?? "",
         },
-        body: JSON.stringify({
-          title,
-          content,
-          thumbnailUrl,
-          categories,
-        }),
+        body: JSON.stringify(payload),
       });
-    } finally {
-      setIsLoading(false);
-    }
+      if (!res.ok) throw new Error("失敗しました");
 
-    alert("記事を更新しました");
-    router.push(`/admin/posts`);
+      alert("記事を更新しました");
+      router.push(`/admin/posts`);
+    } catch (e) {
+      console.error(e);
+      alert("更新に失敗しました。");
+    }
   };
 
   const handleDelete = async () => {
@@ -45,6 +64,9 @@ export default function page() {
     if (!confirm("カテゴリーを削除しますか？")) return; //早期リターンのガード句
     await fetch(`/api/admin/posts/${id}`, {
       method: "DELETE",
+      headers: {
+        Authorization: token ?? "",
+      },
     });
 
     alert("カテゴリーを削除しました");
@@ -52,37 +74,33 @@ export default function page() {
   };
 
   useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch(`/api/admin/posts/${id}`);
-      const { post }: { post: Post } = await res.json();
-      console.log("post", post);
-      setTitle(post.title);
-      setContent(post.content);
-      setThumbnailUrl(post.thumbnailUrl);
-      setCategories(post.postCategories.map((pc) => pc.category));
-    };
+    if (!post) return;
+    reset({
+      title: post.title,
+      content: post.content,
+      thumbnailImageKey: post.thumbnailImageKey,
+      categories: post.postCategories.map((pc) => pc.category),
+    });
+  }, [post, reset]);
 
-    fetcher();
-  }, [id]);
-  console.log("categories", categories);
+  if (error) return <div>取得に失敗しました</div>;
+  if (isLoading) return <div>読み込み中...</div>;
+  if (!post) return null;
   return (
     <>
       <div>
         <h1>記事編集</h1>
       </div>
+
       <PostForm
         mode="edit"
-        title={title}
-        setTitle={setTitle}
-        content={content}
-        setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
-        categories={categories}
-        setCategories={setCategories}
-        onSubmit={handleSubmit}
+        register={register}
+        errors={errors}
+        control={control}
+        setValue={setValue}
+        onSubmit={handleSubmit(onSubmit)}
         onDelete={handleDelete}
-        isloading={isloading}
+        isSubmitting={isSubmitting}
       />
     </>
   );

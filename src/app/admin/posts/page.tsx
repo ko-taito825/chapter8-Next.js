@@ -1,6 +1,6 @@
 "use client";
+import { useFetch } from "@/app/_hooks/useFetch";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
 
 type Post = {
   id: number;
@@ -8,16 +8,15 @@ type Post = {
   createdAt: Date;
 };
 export default function page() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const {
+    data: posts,
+    error,
+    isLoading,
+  } = useFetch<Post[]>("/api/admin/posts", "posts");
 
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch("/api/admin/posts");
-      const { posts } = await res.json();
-      setPosts(posts);
-    };
-    fetcher();
-  });
+  if (error) return <div>取得に失敗しました</div>;
+  if (isLoading) return <div>読み込み中...</div>;
+  if (!posts) return null;
   return (
     <div>
       <div className="flex justify-between">
@@ -32,7 +31,7 @@ export default function page() {
         </button>
       </div>
       <div className="my-10">
-        {posts.map((post) => {
+        {posts?.map((post) => {
           return (
             <Link href={`/admin/posts/${post.id}`} key={post.id}>
               <div className="my-7  border-b border-gray-300 ">

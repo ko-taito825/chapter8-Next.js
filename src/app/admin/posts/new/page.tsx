@@ -1,37 +1,49 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
 import PostForm from "../_components/PostForm";
-import { Category } from "@prisma/client";
+import { PostInput } from "../../../_types/post";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 export default function page() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState(
-    "https://placehold.jp/800x400.jpg"
-  );
-  const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
-  const [isloading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const { token } = useSupabaseSession();
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+    setValue,
+  } = useForm<PostInput>({
+    defaultValues: {
+      title: "",
+      content: "",
+      thumbnailImageKey: "",
+      categories: [],
+    },
+  });
+  const onSubmit: SubmitHandler<PostInput> = async (data) => {
     try {
       const res = await fetch("/api/admin/posts", {
         method: "POST",
         headers: {
           "Content-type": "application/json",
+          Authorization: token ?? "",
         },
-        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
-      });
-      const { id } = await res.json();
-    } finally {
-      setIsLoading(false);
-    }
 
-    alert("記事を作成しました");
-    router.push(`/admin/posts`);
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        throw new Error(`作成失敗: ${res.status}`);
+      }
+      await res.json();
+      alert("記事を作成しました");
+      router.push(`/admin/posts`);
+    } catch (e) {
+      console.error(e);
+      alert("記事の作成に失敗しました");
+    }
   };
   return (
     <div>
@@ -40,16 +52,12 @@ export default function page() {
       </div>
       <PostForm
         mode="new"
-        title={title}
-        setTitle={setTitle}
-        content={content}
-        setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
-        categories={categories}
-        setCategories={setCategories}
-        onSubmit={handleSubmit}
-        isloading={isloading}
+        register={register}
+        errors={errors}
+        control={control}
+        setValue={setValue}
+        onSubmit={handleSubmit(onSubmit)}
+        isSubmitting={isSubmitting}
       />
     </div>
   );
