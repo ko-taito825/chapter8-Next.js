@@ -11,7 +11,6 @@ import {
   useWatch,
 } from "react-hook-form";
 import { PostInput } from "@/app/_types/post";
-import useSWR from "swr";
 type PostFormProps = {
   mode: "new" | "edit";
   register: UseFormRegister<PostInput>;
@@ -51,17 +50,11 @@ export default function PostForm({
     }
     setValue("thumbnailImageKey", data.path);
   };
-  const fetchThumbnailUrl = async (key: string) => {
-    const {
-      data: { publicUrl },
-    } = await supabase.storage.from("post_thumbnail").getPublicUrl(key);
-    return publicUrl;
-  };
 
-  const { data: thumbnailImageUrl, isLoading } = useSWR(
-    thumbnailImageKey ? thumbnailImageKey : null,
-    fetchThumbnailUrl
-  );
+  const thumbnailImageUrl = thumbnailImageKey
+    ? supabase.storage.from("post_thumbnail").getPublicUrl(thumbnailImageKey)
+        .data.publicUrl
+    : null;
 
   return (
     <form onSubmit={onSubmit}>
@@ -74,7 +67,6 @@ export default function PostForm({
           {...register("title", {
             required: "タイトルは必須です",
           })}
-          disabled={isLoading}
         />
         <p className="text-red-500">{errors.title?.message}</p>
       </div>
@@ -84,7 +76,6 @@ export default function PostForm({
           className="border border-gray-400 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
           id="content"
           {...register("content")}
-          disabled={isLoading}
         ></textarea>
       </div>
 
@@ -94,7 +85,6 @@ export default function PostForm({
           type="file"
           id="thumbnailImageKey"
           onChange={handleImageChange}
-          disabled={isLoading}
         />
         {thumbnailImageUrl && (
           <div className="mt-2">
